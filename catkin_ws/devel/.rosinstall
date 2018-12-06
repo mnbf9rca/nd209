@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /media/psf/git/nd209/catkin_ws/devel/setup.sh
