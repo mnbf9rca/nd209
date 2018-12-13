@@ -24,7 +24,35 @@ test_cases = {1:[[[2.16135,-1.42635,1.55109],
                   [-2.99,-0.12,0.94,4.06,1.29,-4.12]],
               4:[],
               5:[]}
+def create_R_x(q):
+    R_x = Matrix([[1,       0,        0],
+                  [0,  cos(q),  -sin(q)],
+                  [0,  sin(q),   cos(q)]])
+    return R_x
 
+
+def create_R_y(q):
+    R_y = Matrix([[cos(q),       0,   sin(q)],
+                  [0,       1,        0],
+                  [-sin(q),       0,   cos(q)]])
+    return R_y
+
+
+def create_R_z(q):
+    R_z = Matrix([[cos(q), -sin(q),        0],
+                  [sin(q),  cos(q),        0],
+                  [0,       0,        1]])
+    return R_z
+
+
+def get_wrist_centre(gripper_point, R_E, gripper_distance):
+    px, py, pz = gripper_point
+    nx, ny, nz = R_E[0, 2], R_E[1, 2], R_E[2, 2]
+    wx = px - gripper_distance * nx
+    wy = py - gripper_distance * ny
+    wz = pz - gripper_distance * nz
+
+    return wx, wy, wz
 
 def test_code(test_case):
     ## Set up code
@@ -61,10 +89,48 @@ def test_code(test_case):
     
     ########################################################################################
     ## 
-
+ 
     ## Insert IK code here!
+    ## outside loop
+    roll, pitch, yaw = symbols('roll, pitch, yaw')
+
+    R_x = create_R_x(roll)
+    R_y = create_R_y(pitch)
+    R_z = create_R_z(yaw)
+    # translation to URDF reference frame is 180 (pi) deg around Z and -90 (-pi/2) around Y
+    R_corr = create_R_z(pi)*create_R_y(-pi/2)
+
+    R_E = simplify(R_z * R_y * R_x * R_corr)
+
     
-    theta1 = 0
+
+    ## per loop
+
+    px = req.poses[x].position.x
+    py = req.poses[x].position.y
+    pz = req.poses[x].position.z
+
+    (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(
+                            [req.poses[x].orientation.x,
+                            req.poses[x].orientation.y,
+                            req.poses[x].orientation.z,
+                            req.poses[x].orientation.w])
+
+    # Your IK code here
+    # Compensate for rotation discrepancy between DH parameters and Gazebo
+    #
+    #
+    EE = Matrix([[px], [py], [pz]])
+    R_E = R_E.subs({'roll': roll, 'pitch': pitch, 'yaw': yaw})
+    WC = get_wrist_centre(EE, R_E, 0.303)
+
+    # Calculate joint angles using Geometric IK method
+    #
+    #
+    ###
+    theta1 = atan(WC[1], WC[0])
+
+    
     theta2 = 0
     theta3 = 0
     theta4 = 0

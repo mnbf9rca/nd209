@@ -71,7 +71,7 @@ def handle_calculate_IK(req):
         #
         #
         # Create Modified DH parameters
-        # i dont really understand why the values in the walkthrough are different...
+        
         DH_table = {alpha0:     0,  a0:      0,  d1:   0.75,   q1:      q1,
                     alpha1: -pi/2,  a1:   0.35,  d2:      0,   q2: q2-pi/2,
                     alpha2:     0,  a2:  0.125,  d3:      0,   q3:      q3,
@@ -84,10 +84,10 @@ def handle_calculate_IK(req):
         #
         # Define Modified DH Transformation matrix
         def create_transformation_matrix(q, a, d, alpha):
-            TM = Matrix([[cos(q),             -sin(q),            0,                a],
-                         [sin(q)*cos(alpha),   cos(q)*cos(alpha),  -sin(alpha),    -sin(alpha)*d],
-                         [sin(q)*sin(alpha),   cos(q)*sin(alpha),   cos(alpha),     cos(alpha)*d],
-                         [0,                   0,            0,                1]])
+            TM = Matrix([[            cos(q),           -sin(q),           0,             a ],
+                         [ sin(q)*cos(alpha), cos(q)*cos(alpha), -sin(alpha), -sin(alpha)*d ],
+                         [ sin(q)*sin(alpha), cos(q)*sin(alpha),  cos(alpha),  cos(alpha)*d ],
+                         [                 0,                 0,           0,             1 ]])
             return TM
         #
         #
@@ -114,7 +114,7 @@ def handle_calculate_IK(req):
         R_y = create_R_y(pitch)
         R_z = create_R_z(yaw)
         # translation to URDF reference frame is 180 (pi) deg around Z and -90 (-pi/2) around Y
-        R_corr = Rot_z(pi)*Rot_y(-pi/2)
+        R_corr = create_R_z(pi)*create_R_y(-pi/2)
 
         R_E = simplify(R_z * R_y * R_x * R_corr)
 
@@ -151,6 +151,7 @@ def handle_calculate_IK(req):
             #
             #
             ###
+            theta1 = atan(WC[1], WC[0])
 
             # Populate response for the IK request
             # In the next line replace theta1,theta2...,theta6 by your joint angle variables
