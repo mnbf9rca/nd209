@@ -143,11 +143,12 @@ def test_code(test_case):
     R_y = create_R_y(pitch)
     R_z = create_R_z(yaw)
     # translation to URDF reference frame is 180 (pi) deg around Z and -90 (-pi/2) around Y
-    R_E = R_z * R_y * R_x 
+    R_E = R_z * R_y * R_x
     
     R_corr = create_R_z(pi)*create_R_y(-pi/2)
 
-    R_E = R_E * R_corr
+    R_E = simplify(R_E * R_corr)
+    print("R_E", R_E)
 
     
 
@@ -192,10 +193,13 @@ def test_code(test_case):
     
     theta2 = pi / 2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35)
     theta3 = pi / 2 - (angle_b + 0.036)
+    print("T0_1", T0_1)
 
     R0_3 = T0_1[0:3, 0:3] * T1_2[0:3, 0:3] * T2_3[0:3, 0:3]
+    print("R0_3", R0_3)
+
     R0_3 = R0_3.evalf(subs = {q1: theta1, q2: theta2, q3: theta3})
-    R3_6 = R0_3.inv("LU") * R_E
+    R3_6 = R0_3.inv("LU") * R_E    
 
     theta4 = atan2(R3_6[2,2], -R3_6[0,2])
     theta5 = atan2(sqrt(R3_6[0,2] * R3_6[0,2] + R3_6[2,2]*R3_6[2,2]), R3_6[1,2])
