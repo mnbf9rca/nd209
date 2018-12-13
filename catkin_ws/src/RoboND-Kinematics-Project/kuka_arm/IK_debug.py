@@ -179,7 +179,7 @@ def test_code(test_case):
     #
     ###
     theta1 = atan2(WC[1], WC[0])
-    side_a = 1.501
+    side_a = 1.501 # a1 + d4 + d6 = 0.35 + 1.5 + 0.303
 
     side_b = sqrt(
                     pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35),2) +
