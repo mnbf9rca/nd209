@@ -22,7 +22,10 @@ test_cases = {1:[[[2.16135,-1.42635,1.55109],
                   [0.01735,-0.2179,0.9025,0.371016]],
                   [-1.1669,-0.17989,0.85137],
                   [-2.99,-0.12,0.94,4.06,1.29,-4.12]],
-              4:[],
+              4:[[[-2.432, 0.843, 2.166],
+                  [0.366, -0.041, 0.737, 0.567]],
+                  [-2.415, 0.688, 2.052],
+                  [2.86,0.58,-0.78,-2.17,1.14,-4.20]],
               5:[]}
 def create_R_x(q):
     R_x = Matrix([[1,       0,        0],
@@ -54,10 +57,17 @@ def get_wrist_centre(gripper_point, R_E, gripper_distance):
 
     return wx, wy, wz
 
-def calculate_theta(opposite_side, side_b, side_c):
+def calculate_angle(opposite_side, side_b, side_c):
     '''following cosine rule, calculates the angle opposite opposite_side'''
     return acos((side_b * side_b + side_c * side_c - opposite_side * opposite_side) /
                         (2 * side_b * side_c))
+
+def calculate_side(opposite_angle, side_b, side_c):
+    '''given two adjacent sides and the opposite angle, calculates the length of the missing side'''
+    return sqrt(side_b*side_b + side_c*side_c - 2*side_b*side_c*cos(opposite_angle))
+
+def calculate_hypotenuse(side_a, side_b):
+    return sqrt(side_a*side_a + side_b*side_b)
 
 def test_code(test_case):
     ## Set up code
@@ -150,6 +160,17 @@ def test_code(test_case):
     R_E = simplify(R_E * R_corr)
     print("R_E", R_E)
 
+    # calculate length of J3-J5 (outside for loop as is static)
+    J4 = [0.96, -0.054]
+    J5 = [0.96 + 0.54, -0.053]
+    link_4 = 0.54
+    link_3 = sqrt(J4[0]**2 + J4[1]**2)
+    angle_of_line_from_3_to_5 = atan2(J5[1], J5[0])
+    angle_link_4 = atan2(J4[1], J4[0])
+    angle_between_link_4_and_line_3_5 = angle_of_line_from_3_to_5 - angle_link_4
+    line_3_5 = sqrt(link_4**2 + link_3**2 + 2 * link_4 * link_3 * cos(angle_between_link_4_and_line_3_5))
+    print("line_3_5", line_3_5, "angle_between_link_4_and_line_3_5", angle_between_link_4_and_line_3_5)
+
     
 
     ## per loop
@@ -170,40 +191,46 @@ def test_code(test_case):
     #
     EE = Matrix([[px], [py], [pz]])
     R_E = R_E.subs({'roll': roll, 'pitch': pitch, 'yaw': yaw})
-    WC = get_wrist_centre(EE, R_E, 0.303)
-    print("WC",WC)
-    print("R_E", R_E)
+    wx, wy, wz = get_wrist_centre(EE, R_E, 0.303) # wx, wy, wz
+    print("WC",wx, wy, wz)
 
     # Calculate joint angles using Geometric IK method
     #
     #
     ###
-    theta1 = atan2(WC[1], WC[0])
-    side_a = 1.501 # a1 + d4 + d6 = 0.35 + 1.5 + 0.303
+    theta1 = atan2(wy, wx)
 
-    side_b = sqrt(
-                    pow((sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35),2) +
-                    pow((WC[2] - 0.75), 2))
-    side_c = 1.25
-    angle_a = calculate_theta(side_a, side_b, side_c)
-    angle_b = calculate_theta(side_b, side_a, side_c)
-    angle_c = calculate_theta(side_c, side_a, side_b)
+    # first, calculate the length of the 3 sides of the triangle J2,J3,J5(WC)
+
+    # adjust WC to reference frame where J2 is 0,0
+    WC_WRT_J2 = (wx - 0.35, wz - 0.33 - 0.42)
+    print("WC_WRT_J2", WC_WRT_J2)
+
+    # work out angle of WC from J2
+    angle_of_WC_from_J2 = atan2(WC_WRT_J2[1], WC_WRT_J2[0])
+    length_J2_to_WC = sqrt(WC_WRT_J2[0]**2 + WC_WRT_J2[1]**2)
+    # work out angle of J3 from J2
+    link_2 = 1.25 # link_2 goes from J2 to J3
+    internal_angle_of_J3_from_J2 = acos((length_J2_to_WC**2 + link_2**2 - line_3_5**2) / (2 * length_J2_to_WC * link_2))
+    theta2 = simplify(-pi/2 + angle_of_WC_from_J2 + internal_angle_of_J3_from_J2)
+
+
+    internal_angle_of_WC_from_J3 = acos((link_2**2 + line_3_5**2 - length_J2_to_WC) / (2 * link_2 * line_3_5))
+    theta3 = pi/2 + internal_angle_of_WC_from_J3 - angle_between_link_4_and_line_3_5
 
     
-    
-    theta2 = pi / 2 - angle_a - atan2(WC[2] - 0.75, sqrt(WC[0] * WC[0] + WC[1] * WC[1]) - 0.35)
-    theta3 = pi / 2 - (angle_b + 0.036)
-    print("T0_1", T0_1)
+
+    print("theta2", theta2, "theta3", theta2)
 
     R0_3 = T0_1[0:3, 0:3] * T1_2[0:3, 0:3] * T2_3[0:3, 0:3]
-    print("R0_3", R0_3)
 
     R0_3 = R0_3.evalf(subs = {q1: theta1, q2: theta2, q3: theta3})
-    R3_6 = R0_3.inv("LU") * R_E    
+    R3_6 = R0_3.T * R_E    
 
     theta4 = atan2(R3_6[2,2], -R3_6[0,2])
     theta5 = atan2(sqrt(R3_6[0,2] * R3_6[0,2] + R3_6[2,2]*R3_6[2,2]), R3_6[1,2])
     theta6 = atan2(-R3_6[1,1], R3_6[1,0])
+    print("theta4", theta4, "theta5", theta5, "theta6", theta6)
 
     ## 
     ########################################################################################
@@ -219,7 +246,7 @@ def test_code(test_case):
     ########################################################################################
 
     ## For error analysis please set the following variables of your WC location and EE location in the format of [x,y,z]
-    your_wc = [WC[0], WC[1], WC[2]] # <--- Load your calculated WC values in this array
+    your_wc = [wx, wy, wz] # <--- Load your calculated WC values in this array
     your_ee = [FK[0,3], FK[1,3], FK[2,3]] # <--- Load your calculated end effector value from your forward kinematics
     ########################################################################################
 
@@ -244,11 +271,12 @@ def test_code(test_case):
     t_4_e = abs(theta4-test_case[2][3])
     t_5_e = abs(theta5-test_case[2][4])
     t_6_e = abs(theta6-test_case[2][5])
-    print ("\nTheta 1 error is: %04.8f" % t_1_e)
-    print ("Theta 2 error is: %04.8f" % t_2_e)
-    print ("Theta 3 error is: %04.8f" % t_3_e)
-    print ("Theta 4 error is: %04.8f" % t_4_e)
-    print ("Theta 5 error is: %04.8f" % t_5_e)
+    #print ("\nTheta 1 error is: %04.8f" % t_1_e, theta1,test_case[2][0])
+    print("\nTheta 1 error is: %04.8f (calculated: %s, expected: %04.8f)" % (t_1_e, theta1.evalf(),test_case[2][0]))
+    print  ("Theta 2 error is: %04.8f (calculated: %s, expected: %04.8f)" % (t_2_e, theta2.evalf(),test_case[2][1]))
+    print  ("Theta 3 error is: %04.8f (calculated: %s, expected: %04.8f)" % (t_3_e, theta3.evalf(),test_case[2][2]))
+    print  ("Theta 4 error is: %04.8f" % t_4_e)
+    print  ("Theta 5 error is: %04.8f" % t_5_e)
     print ("Theta 6 error is: %04.8f" % t_6_e)
     print ("\n**These theta errors may not be a correct representation of your code, due to the fact \
            \nthat the arm can have muliple positions. It is best to add your forward kinmeatics to \
@@ -271,6 +299,6 @@ def test_code(test_case):
 
 if __name__ == "__main__":
     # Change test case number for different scenarios
-    test_case_number = 2
+    test_case_number = 4
 
     test_code(test_cases[test_case_number])
