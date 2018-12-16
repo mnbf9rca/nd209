@@ -202,6 +202,7 @@ def test_code(test_case):
     print("R_E", R_E)
 
     # calculate length of J3-J5 (outside for loop as is static)
+    # also calculate the sag of link 4 WRT horizontal from J3
     J4 = [0.96, -0.054]
     J5 = [0.96 + 0.54, -0.054]
     link_4 = 0.54
