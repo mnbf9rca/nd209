@@ -29,7 +29,9 @@ test_cases = {1: [[[2.16135, -1.42635, 1.55109],
                   [2.86, 0.58, -0.78, -2.17, 1.14, -4.20]],
               5: []}
 
-
+# conversions
+rtd = 180 / pi
+dtr = pi / 180
 def create_R_x(q):
     R_x = Matrix([[1,       0,        0],
                   [0,  cos(q),  -sin(q)],
@@ -69,12 +71,41 @@ def calculate_angle(opposite_side, side_b, side_c):
 
 
 def calculate_side(opposite_angle, side_b, side_c):
-    '''given two adjacent sides and the opposite angle, calculates the length of the missing side'''
+    '''given two adjacent sides and the opposite angle of any triangle,
+       calculates the length of the missing side using cosine rule'''
     return sqrt(side_b*side_b + side_c*side_c - 2*side_b*side_c*cos(opposite_angle))
 
 
 def calculate_hypotenuse(side_a, side_b):
+    '''given the length of the opposite and adjacent sides of a right angled triangle,
+       calculates the hypotenuse'''
     return sqrt(side_a*side_a + side_b*side_b)
+
+def ensure_rotation_around_zero(angle_to_check):
+    '''checks if an angle is > pi/2 and if so, inverts it'''
+    if angle_to_check > pi/2:
+        return pi/2 - angle_to_check
+    return angle_to_check
+
+def clip_value(value, upper, lower):
+    if value > upper:
+        return upper
+    elif value < lower:
+        return lower
+    return value
+
+def prevent_exceeding_180_degrees(angle):
+    '''checks if an angle is > pi, and if so, flips it so the
+       arm travels the other way around.
+       for exmaple, 185 degrees becomes -175 degrees'''
+    if angle > pi:
+        print("angle %s is greater than pi", angle)
+        return -pi - (angle - pi)
+    elif angle < -pi:
+        print("angle %s is less than -pi", angle)
+        return pi + (angle + pi)
+    print("angle %s is within pi > x > -pi", angle)
+    return angle
 
 
 def test_code(test_case):
@@ -128,7 +159,7 @@ def test_code(test_case):
 
     DH_table = {alpha0:     0,  a0:      0,  d1:   0.75,   q1:      q1,
                 alpha1: -pi/2,  a1:   0.35,  d2:      0,   q2: q2-pi/2,
-                alpha2:     0,  a2:  0.125,  d3:      0,   q3:      q3,
+                alpha2:     0,  a2:   1.25,  d3:      0,   q3:      q3,
                 alpha3: -pi/2,  a3: -0.054,  d4:    1.5,   q4:      q4,
                 alpha4:  pi/2,  a4:      0,  d5:      0,   q5:      q5,
                 alpha5: -pi/2,  a5:      0,  d6:      0,   q6:      q6,
@@ -172,18 +203,20 @@ def test_code(test_case):
 
     # calculate length of J3-J5 (outside for loop as is static)
     J4 = [0.96, -0.054]
-    J5 = [0.96 + 0.54, -0.053]
+    J5 = [0.96 + 0.54, -0.054]
     link_4 = 0.54
     link_3 = calculate_hypotenuse(J4[0], J4[1])
+    line_3_5 = calculate_hypotenuse(J5[0], J5[1])
+    
     angle_of_line_from_3_to_5 = atan2(J5[1], J5[0])
     angle_link_4 = atan2(J4[1], J4[0])
 
-    line_3_5 = calculate_hypotenuse(J5[0], J5[1])
+    
     angle_between_link_4_and_line_3_5 = calculate_angle(link_4, link_3, line_3_5)
 
     # replaced with pythagoras line_3_5 = sqrt(link_4**2 + link_3**2 + 2 * link_4 * link_3 * cos(angle_between_link_4_and_line_3_5))
     # replaced wiht cosine rule angle_between_link_4_and_line_3_5 = angle_of_line_from_3_to_5 - angle_link_4
-    print("line_3_5", line_3_5, "angle_between_link_4_and_line_3_5", angle_between_link_4_and_line_3_5)
+    print("line_3_5", line_3_5, "angle_between_link_4_and_line_3_5", angle_between_link_4_and_line_3_5, "angle_link_4", angle_link_4)
 
     # per loop
 
@@ -205,33 +238,52 @@ def test_code(test_case):
     rpy_table = {roll: r, pitch: p, yaw: y}
     R_E = R_E.subs(rpy_table)
     wx, wy, wz = get_wrist_centre(EE, R_E, 0.303)  # wx, wy, wz
+
     print("WC", wx, wy, wz)
 
     # Calculate joint angles using Geometric IK method
     #
     #
     ###
-    theta1 = atan2(wy, wx)
+    # changed for oslo model theta1 = atan2(wy, wx).evalf()
+    theta1 = atan2(wx, wy).evalf()
 
-    # first, calculate the length of the 3 sides of the triangle J2,J3,J5(WC)
+    
+
+    # if rotating more than 180 degrees
+    # go around the other way
+    # theta1 = prevent_exceeding_180_degrees(theta1)
+    # clip to limits as per URDF
+    #theta1 = clip_value(theta1, 185*dtr, -185*dtr)
+
+    # first, calculate the length of the 3 sides of the triangle J2,J3,J5(WC) - done above
 
     # adjust WC to reference frame where J2 is 0,0
+
+    
     WC_WRT_J2 = (sqrt(wx**2 + wy**2) - 0.35, wz - 0.33 - 0.42)
     print("WC_WRT_J2", WC_WRT_J2)
-
-    # work out angle of WC from J2
-    angle_of_WC_from_J2 = atan2(WC_WRT_J2[1], WC_WRT_J2[0])
     length_J2_to_WC = calculate_hypotenuse(WC_WRT_J2[0], WC_WRT_J2[1])
     # work out angle of J3 from J2
     link_2 = 1.25  # link_2 goes from J2 to J3
+
     internal_angle_of_J2 = calculate_angle(line_3_5, link_2, length_J2_to_WC)
-
-    print("internal_angle_of_J2", internal_angle_of_J2, "angle_of_WC_from_J2", angle_of_WC_from_J2)
+    internal_angle_of_J3 = calculate_angle(length_J2_to_WC, link_2, line_3_5)
+    # work out angle of WC from J2
+    angle_of_WC_from_J2 = atan2(WC_WRT_J2[1], WC_WRT_J2[0])
     theta2 = pi/2 - angle_of_WC_from_J2 - internal_angle_of_J2
+    theta3 = pi/2 - (internal_angle_of_J3 + angle_link_4)
 
-    internal_angle_of_WC_from_J3 = acos(
-        (link_2**2 + line_3_5**2 - length_J2_to_WC) / (2 * link_2 * line_3_5))
-    theta3 = pi/2 - internal_angle_of_WC_from_J3 - angle_of_line_from_3_to_5
+
+
+
+    print("internal_angle_of_J2", internal_angle_of_J2)
+    print("angle_of_WC_from_J2", angle_of_WC_from_J2)
+    print("length_J2_to_WC", length_J2_to_WC)
+    #theta2 = pi/2 - angle_of_WC_from_J2 - internal_angle_of_J2
+    #theta2 = clip_value(theta2, 85*dtr, -45*dtr)
+
+ 
 
     print("theta2", theta2, "theta3", theta2)
 
@@ -239,16 +291,20 @@ def test_code(test_case):
 
     # R0_3 = R0_3.evalf(subs={q1: theta1, q2: theta2, q3: theta3})[0:3, 0:3]
     # R0_3 = R0_3.subs({q1: theta1, q2: theta2, q3: theta3})[0:3, 0:3]
-    print("R0_3", R0_3)
-    print("R_zyx", R_zyx)
-    print("R_corr", R_corr)
+    #print("R0_3", R0_3)
+    #print("R_zyx", R_zyx)
+    #print("R_corr", R_corr)
     R3_6 = (R0_3.T * R_zyx * R_corr).evalf(subs={q1: theta1, q2: theta2, q3: theta3, roll: r, pitch: p, yaw: y})
-    print("R3_6", R3_6)
+    #print("R3_6", R3_6)
     R3_6_np = np.array(R3_6).astype(np.float64)
     theta4, theta5, theta6 = tf.transformations.euler_from_matrix(R3_6_np, axes='rxyz')
 
     theta4 = np.pi/2 + theta4
     theta5 = np.pi/2 - theta5
+
+    theta4 = atan2(R3_6[2,2], -R3_6[0,2])
+    theta5 = atan2(sqrt(R3_6[0,2]*R3_6[0,2] + R3_6[2,2]*R3_6[2,2]),R3_6[1,2])
+    theta6 = atan2(-R3_6[1,1],R3_6[1,0])    
     print("theta4", theta4, "theta5", theta5, "theta6", theta6)
 
     ##
@@ -320,6 +376,7 @@ def test_code(test_case):
 
 if __name__ == "__main__":
     # Change test case number for different scenarios
-    test_case_number = 3
-
-    test_code(test_cases[test_case_number])
+    
+    for test_case_number in range(1,5):
+        print("############# --- test case :", test_case_number)
+        test_code(test_cases[test_case_number])
