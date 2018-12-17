@@ -245,9 +245,7 @@ def test_code(test_case):
     # Calculate joint angles using Geometric IK method
     #
     #
-    ###
-    # changed for oslo model theta1 = atan2(wy, wx).evalf()
-    theta1 = atan2(wx, wy).evalf()
+    theta1 = atan2(wy, wx).evalf()
 
     
 
