@@ -197,7 +197,7 @@ def handle_calculate_IK(req):
             # roll, pitch, yaw = end-effector orientation
             px = req.poses[x].position.x
             py = req.poses[x].position.y
-            pz = req.poses[x].position.z
+            pz = req.poses[x].position.z - 0.03
 
             roll, pitch, yaw = symbols('roll, pitch, yaw')
 
