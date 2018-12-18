@@ -11,7 +11,7 @@
 
 from mpmath import *
 from sympy import *
-import numpy as np
+#  import numpy as np
 
 # import modules
 import rospy
@@ -50,7 +50,7 @@ def create_R_z(q):
 def get_wrist_centre(gripper_point, R_E, gripper_distance):
     px, py, pz = gripper_point
     nx, ny, nz = R_E[0, 2], R_E[1, 2], R_E[2, 2]
-    print("nx, ny, nz", nx, ny, nz)
+
     wx = px - gripper_distance * nx
     wy = py - gripper_distance * ny
     wz = pz - gripper_distance * nz
@@ -149,11 +149,12 @@ def handle_calculate_IK(req):
         T0_1 = create_transformation_matrix(q1, a0, d1, alpha0).subs(DH_table)
         T1_2 = create_transformation_matrix(q2, a1, d2, alpha1).subs(DH_table)
         T2_3 = create_transformation_matrix(q3, a2, d3, alpha2).subs(DH_table)
-        T3_4 = create_transformation_matrix(q4, a3, d4, alpha3).subs(DH_table)
-        T4_5 = create_transformation_matrix(q5, a4, d5, alpha4).subs(DH_table)
-        T5_6 = create_transformation_matrix(q6, a5, d6, alpha5).subs(DH_table)
-        T6_E = create_transformation_matrix(q7, a6, d7, alpha6).subs(DH_table)
-        T0_E = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_E
+        # matrix below only used in ik_debug.py
+        # T3_4 = create_transformation_matrix(q4, a3, d4, alpha3).subs(DH_table)
+        # T4_5 = create_transformation_matrix(q5, a4, d5, alpha4).subs(DH_table)
+        # T5_6 = create_transformation_matrix(q6, a5, d6, alpha5).subs(DH_table)
+        # T6_E = create_transformation_matrix(q7, a6, d7, alpha6).subs(DH_table)
+        # T0_E = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_E
 
         #
         # Extract rotation matrices from the transformation matrices
@@ -175,21 +176,17 @@ def handle_calculate_IK(req):
 
         # calculate length of J3-J5 (outside for loop as is static)
         # also calculate the sag of link 4 WRT horizontal from J3
+
+        # start with the position of J4 and J5 from the URDF
         J4 = [0.96, -0.054]
         J5 = [0.96 + 0.54, -0.054]
-        link_4 = 0.54
-        link_3 = calculate_hypotenuse(J4[0], J4[1])
+
+        # calculate length of the shortest line from J3 to J5
         line_3_5 = calculate_hypotenuse(J5[0], J5[1])
 
-        angle_of_line_from_3_to_5 = atan2(J5[1], J5[0])
+        # work out the angle that link_3 sags - this is the angle which J4 is down WRT J3
         angle_link_4 = atan2(J4[1], J4[0])
 
-        angle_between_link_4_and_line_3_5 = calculate_angle(link_4, link_3, line_3_5)
-
-        # replaced with pythagoras line_3_5 = sqrt(link_4**2 + link_3**2 + 2 * link_4 * link_3 * cos(angle_between_link_4_and_line_3_5))
-        # replaced wiht cosine rule angle_between_link_4_and_line_3_5 = angle_of_line_from_3_to_5 - angle_link_4
-        print("line_3_5", line_3_5, "angle_between_link_4_and_line_3_5",
-              angle_between_link_4_and_line_3_5, "angle_link_4", angle_link_4)
 
         # Initialize service response
         joint_trajectory_list = []
@@ -202,7 +199,7 @@ def handle_calculate_IK(req):
             # roll, pitch, yaw = end-effector orientation
             px = req.poses[x].position.x
             py = req.poses[x].position.y
-            pz = req.poses[x].position.z - 0.03
+            pz = req.poses[x].position.z
 
             (r, p, y) = tf.transformations.euler_from_quaternion(
                 [req.poses[x].orientation.x,
@@ -215,74 +212,65 @@ def handle_calculate_IK(req):
             #
             #
             EE = Matrix([[px], [py], [pz]])
-            rpy_table = {roll: r, pitch: p, yaw: y}
+            rpy_table = { roll: r, 
+                         pitch: p,
+                           yaw: y}
             R_E = R_E.subs(rpy_table)
             wx, wy, wz = get_wrist_centre(EE, R_E, 0.303)  # wx, wy, wz
-
-            print("WC", wx, wy, wz)
 
             # Calculate joint angles using Geometric IK method
             #
             #
+
+            # theta1 = translation around z plane of y and x
             theta1 = atan2(wy, wx)
-
-            # if rotating more than 180 degrees
-            # go around the other way
-            # theta1 = prevent_exceeding_180_degrees(theta1)
-            # clip to limits as per URDF
-            #theta1 = clip_value(theta1, 185*dtr, -185*dtr)
-
-            # first, calculate the length of the 3 sides of the triangle J2,J3,J5(WC) - done above
 
             # adjust WC to reference frame where J2 is 0,0
             WC_WRT_J2 = (sqrt(wx**2 + wy**2) - 0.35, wz - 0.33 - 0.42)
-            print("WC_WRT_J2", WC_WRT_J2)
+
+            # we have the size of the sides of the triangle J2-J3 and J3-J5 from above
+            # now, work out the size of the side J2-J5 (J5 = WC)
             length_J2_to_WC = calculate_hypotenuse(WC_WRT_J2[0], WC_WRT_J2[1])
             # work out angle of J3 from J2
             link_2 = 1.25  # link_2 goes from J2 to J3
 
+            # calculate the internal angle at J2 inside the triangle J3-J2-J5
             internal_angle_of_J2 = calculate_angle(line_3_5, link_2, length_J2_to_WC)
+            # calculate the internal angle at J3 inside the triangle J2-J3-J5
             internal_angle_of_J3 = calculate_angle(length_J2_to_WC, link_2, line_3_5)
-            # work out angle of WC from J2
+            # work out angle of J5 (WC) from J2
             angle_of_WC_from_J2 = atan2(WC_WRT_J2[1], WC_WRT_J2[0])
+            # subtract the internal angles from pi/2 to give the rotation of theta2
             theta2 = (pi/2 - angle_of_WC_from_J2 - internal_angle_of_J2)
-            theta3 = (pi/2 - (internal_angle_of_J3 + angle_link_4))
+            # subtract the internal angle for J3 from pi/2, and subtract the sag of link 4 WRT J3
+            theta3 = (pi/2 - internal_angle_of_J3 - angle_link_4)
 
-            print("internal_angle_of_J2", internal_angle_of_J2)
-            print("angle_of_WC_from_J2", angle_of_WC_from_J2)
-            print("length_J2_to_WC", length_J2_to_WC)
-            #theta2 = pi/2 - angle_of_WC_from_J2 - internal_angle_of_J2
-            #theta2 = clip_value(theta2, 85*dtr, -45*dtr)
-
-            print("theta2", theta2, "theta3", theta2)
-
+            # J5,J7,J7 are given by the inverse of the translation of J1,J2,J3 WRT the roll, pitch and yaw of the end effector
+            # from https://classroom.udacity.com/nanodegrees/nd209/parts/c199593e-1e9a-4830-8e29-2c86f70f489e/modules/8855de3f-2897-46c3-a805-628b5ecf045b/lessons/91d017b1-4493-4522-ad52-04a74a01094c/concepts/a1abb738-84ee-48b1-82d7-ace881b5aec0
+            # and https://www.uio.no/studier/emner/matnat/ifi/INF3480/v14/undervisningsmatriale/lec05-Inverse-VelocityKinematicsI.pdf
             R0_3 = (T0_1 * T1_2 * T2_3)[0:3, 0:3]
 
-            # R0_3 = R0_3.evalf(subs={q1: theta1, q2: theta2, q3: theta3})[0:3, 0:3]
-            # R0_3 = R0_3.subs({q1: theta1, q2: theta2, q3: theta3})[0:3, 0:3]
-            #print("R0_3", R0_3)
-            #print("R_zyx", R_zyx)
-            #print("R_corr", R_corr)
             R3_6 = (R0_3.T * R_zyx * R_corr).evalf(subs={q1: theta1,
                                                          q2: theta2,
                                                          q3: theta3,
                                                          roll: r,
                                                          pitch: p,
                                                          yaw: y})
-            #print("R3_6", R3_6)
-            R3_6_np = np.array(R3_6).astype(np.float64)
-            theta4, theta5, theta6 = tf.transformations.euler_from_matrix(R3_6_np, axes='rxyz')
 
-            theta4 = pi/2 + theta4
-            theta5 = pi/2 - theta5
-
+            # extract angles from rotated matrix
             theta4 = atan2(R3_6[2, 2], -R3_6[0, 2])
-            theta5 = atan2(sqrt(R3_6[0, 2]*R3_6[0, 2] + R3_6[2, 2]*R3_6[2, 2]), R3_6[1, 2])
+            theta5 = atan2(sqrt(R3_6[0, 2]**2 + R3_6[2, 2]**2), R3_6[1, 2])
             theta6 = atan2(-R3_6[1, 1], R3_6[1, 0])
-            print("theta4", theta4, "theta5", theta5, "theta6", theta6)
+
             # Populate response for the IK request
             # In the next line replace theta1,theta2...,theta6 by your joint angle variables
-            joint_trajectory_point.positions = [theta1.evalf(), theta2.evalf(), theta3.evalf(), theta4.evalf(), theta5.evalf(), theta6.evalf()]
+            joint_trajectory_point.positions = [theta1.evalf(), 
+                                                theta2.evalf(), 
+                                                theta3.evalf(),
+                                                theta4.evalf(),
+                                                theta5.evalf(),
+                                                theta6.evalf()]
+
             joint_trajectory_list.append(joint_trajectory_point)
 
         rospy.loginfo("length of Joint Trajectory List: %s" % len(joint_trajectory_list))

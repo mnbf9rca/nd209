@@ -192,6 +192,7 @@ def test_code(test_case):
     T6_E = create_transformation_matrix(q7, a6, d7, alpha6).subs(DH_table)
     T0_E = T0_1 * T1_2 * T2_3 * T3_4 * T4_5 * T5_6 * T6_E
 
+    print("T0_E", simplify(T0_E))
     # outside loop
     roll, pitch, yaw = symbols('roll, pitch, yaw')
 
