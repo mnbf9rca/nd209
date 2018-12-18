@@ -235,7 +235,6 @@ def handle_calculate_IK(req):
             # first, calculate the length of the 3 sides of the triangle J2,J3,J5(WC) - done above
 
             # adjust WC to reference frame where J2 is 0,0
-
             WC_WRT_J2 = (sqrt(wx**2 + wy**2) - 0.35, wz - 0.33 - 0.42)
             print("WC_WRT_J2", WC_WRT_J2)
             length_J2_to_WC = calculate_hypotenuse(WC_WRT_J2[0], WC_WRT_J2[1])
