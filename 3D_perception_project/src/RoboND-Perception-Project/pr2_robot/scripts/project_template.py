@@ -136,7 +136,7 @@ def pcl_callback(pcl_msg):
     # Classify the clusters! (loop through each detected cluster one at a time)
     detected_objects_labels = []
     detected_objects = []
-    clf = svm.SVC(kernel='linear')
+    
     for index, pts_list in enumerate(cluster_indices):
         # Grab the points for the cluster
         pcl_cluster = pcl_objects.extract(pts_list)
@@ -226,6 +226,11 @@ if __name__ == '__main__':
     detected_objects_pub = rospy.Publisher("/detected_objects", DetectedObjectsArray, queue_size=1)
 
     # TODO: Load Model From disk
+    model = pickle.load(open('model.sav', 'rb'))
+    clf = model['classifier']
+    encoder = LabelEncoder()
+    encoder.classes_ = model['classes']
+    scaler = model['scaler']
 
     # Initialize color_list
     get_color_list.color_list = []

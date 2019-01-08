@@ -41,6 +41,7 @@ if __name__ == '__main__':
         spawn_model(model_name)
 
         for i in range(20):
+            rospy.loginfo('Capturing model {} iteration {}'.format(model_name, str(i)))
             # make five attempts to get a valid a point cloud then give up
             sample_was_good = False
             try_count = 0
@@ -65,5 +66,5 @@ if __name__ == '__main__':
         delete_model()
 
 
-    pickle.dump(labeled_features, open('training_set_world_3.sav', 'wb'))
+    pickle.dump(labeled_features, open('training_set.sav', 'wb'))
 
