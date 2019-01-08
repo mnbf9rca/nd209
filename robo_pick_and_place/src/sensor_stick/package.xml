@@ -8,6 +8,7 @@
   <!-- Example:  -->
   <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
   <maintainer email="harsh@electricmovement.com">harsh</maintainer>
+  <maintainer email="brandon@electricmovement.com">Brandon Kinman</maintainer>
 
 
   <!-- One license tag required, multiple allowed, one license per tag -->
@@ -25,7 +26,8 @@
   <!-- Author tags are optional, multiple are allowed, one per tag -->
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
-  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+  <author email="harsh@electricmovement.com">Harsh Pandya</author>
+  <author email="brandon@electricmovement.com">Brandon Kinman</author>
 
 
   <!-- The *_depend tags are used to specify dependencies -->
@@ -42,6 +44,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>dynamic_reconfigure</build_depend>
+  <build_depend>message_generation</build_depend>
   <build_depend>pcl_conversions</build_depend>
   <build_depend>pcl_ros</build_depend>
   <build_depend>roslint</build_depend>
@@ -56,6 +59,7 @@
   <run_depend>gazebo_ros_control</run_depend>
   <run_depend>joint_state_controller</run_depend>
   <run_depend>joint_state_publisher</run_depend>
+  <run_depend>message_runtime</run_depend>
   <run_depend>pcl_conversions</run_depend>
   <run_depend>pcl_ros</run_depend>
   <run_depend>robot_state_publisher</run_depend>

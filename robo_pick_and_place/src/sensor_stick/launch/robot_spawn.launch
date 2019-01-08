@@ -24,4 +24,7 @@
   <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false"
     output="screen" args="-d $(find sensor_stick)/config/perception.rviz"/>
 
+  <!-- The feature extractor node -->
+  <node name="feature_extractor" pkg="sensor_stick" type="feature_extractor" respawn="false"/>
+
 </launch>

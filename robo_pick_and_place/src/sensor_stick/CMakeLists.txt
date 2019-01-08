@@ -9,11 +9,14 @@ project(sensor_stick)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
 	dynamic_reconfigure
+	message_generation
 	pcl_conversions
 	pcl_ros
 	roscpp
 	rospy
+	genmsg
 	roslint
+	std_msgs
 	sensor_msgs
 )
 
@@ -24,7 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -56,13 +59,19 @@ find_package(catkin REQUIRED COMPONENTS
 #   Message1.msg
 #   Message2.msg
 # )
+add_message_files(
+	FILES
+	DetectedObject.msg
+	DetectedObjectsArray.msg
+)
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+  FILES
+  GetNormals.srv
+  GetFloatArrayFeature.srv
+)
+
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -72,10 +81,11 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+	DEPENDENCIES
+    std_msgs
+	sensor_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -109,7 +119,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES sensor_stick
-#  CATKIN_DEPENDS roscpp rospy std_msgs
+   CATKIN_DEPENDS message_runtime
 #  DEPENDS system_lib
 )
 
@@ -138,6 +148,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(cloud_transformer src/cloud_transformer.cpp)
+add_executable(feature_extractor src/feature_extractor.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -148,11 +159,12 @@ add_executable(cloud_transformer src/cloud_transformer.cpp)
 ## Add cmake target dependencies of the executable
 ## same as for the library above
 add_dependencies(cloud_transformer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${PROJECT_NAME}_gencfg)
+add_dependencies(feature_extractor sensor_stick_gencpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(cloud_transformer
-  ${catkin_LIBRARIES}
-)
+target_link_libraries(cloud_transformer ${catkin_LIBRARIES})
+target_link_libraries(feature_extractor ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
