@@ -102,9 +102,9 @@ Rubric:
     Accuracy: 0.86 (+/- 0.06)
     accuracy score: 0.856783919598
 
-![Normalised confusion matrix](https://raw.githubusercontent.com/mnbf9rca/nd209/master/3D_perception_project/normalised.png)
-`pcl_callback()` has been implemented in [project_template.py](/3D_perception_project/src/RoboND-Perception-Project/pr2_robot/scripts/project_template.py), and accurately identifies 3/3 objects in world 1, 4 or 5/5 objects in world 2, and 7/8 objects in world 3. Here's an example output from world 2:
-![output showing that the number of entires in the YAML file varies with each iteration](https://raw.githubusercontent.com/mnbf9rca/nd209/master/3D_perception_project/world_2.png)
+![Normalised confusion matrix](./normalised.png)
+`pcl_callback()` has been implemented in [project_template.py](./src/RoboND-Perception-Project/pr2_robot/scripts/project_template.py), and accurately identifies 3/3 objects in world 1, 4 or 5/5 objects in world 2, and 7/8 objects in world 3. Here's an example output from world 2:
+![output showing that the number of entires in the YAML file varies with each iteration](./world_2.png)
 
 
 > 
