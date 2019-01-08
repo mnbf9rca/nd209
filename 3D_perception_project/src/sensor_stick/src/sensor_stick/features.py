@@ -11,7 +11,7 @@ def rgb_to_hsv(rgb_list):
 
 
 def compute_color_histograms(cloud, using_hsv=False):
-    nbins = 32
+    nbins = 64
     bins_range = (0, 256)
 
     # Compute histograms for the clusters
@@ -48,7 +48,7 @@ def compute_color_histograms(cloud, using_hsv=False):
 
 
 def compute_normal_histograms(normal_cloud):
-    nbins = 32
+    nbins = 48
     bins_range = (0, 256)    
     norm_x_vals = []
     norm_y_vals = []

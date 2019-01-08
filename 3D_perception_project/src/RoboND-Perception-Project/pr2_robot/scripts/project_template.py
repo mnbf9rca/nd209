@@ -59,6 +59,7 @@ def pcl_callback(pcl_msg):
     # from https://classroom.udacity.com/nanodegrees/nd209/parts/c199593e-1e9a-4830-8e29-2c86f70f489e/modules/e5bfcfbd-3f7d-43fe-8248-0c65d910345a/lessons/8d51e0bf-0fa1-49a7-bd45-e062c4a2121f/concepts/fdb3a445-43e0-4a02-81e2-0448432c156f?contentVersion=1.0.0&contentLocale=en-us
     '''
     commented out for now as doesnt seem to be working
+    see https://github.com/strawlab/python-pcl/issues/224
     outlier_filter = pcl_data.make_statistical_outlier_filter()
     outlier_filter.set_mean_k(50)
     # Set threshold scale factor
@@ -179,7 +180,7 @@ def pr2_mover(object_list):
     test_scene_num = std_msgs.msg.Int32()
 
     ###########
-    test_scene_num.data = 4
+    test_scene_num.data = 2
     ###########
     object_name = std_msgs.msg.String()
     arm_name = std_msgs.msg.String()
@@ -209,7 +210,7 @@ def pr2_mover(object_list):
     # TODO: Rotate PR2 in place to capture side tables for the collision map
 
     # TODO: Loop through the pick list
-    for i, target_object in enumerate(object_list_param):
+    for target_object in object_list_param:
         rospy.loginfo('Attempting to process object name: {} in group {}'.format(target_object['name'], target_object['group']))
         object_name.data = target_object['name']
 
