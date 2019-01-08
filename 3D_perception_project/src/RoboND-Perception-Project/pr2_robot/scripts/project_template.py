@@ -180,7 +180,7 @@ def pr2_mover(object_list):
     test_scene_num = std_msgs.msg.Int32()
 
     ###########
-    test_scene_num.data = 2
+    test_scene_num.data = 1
     ###########
     object_name = std_msgs.msg.String()
     arm_name = std_msgs.msg.String()
