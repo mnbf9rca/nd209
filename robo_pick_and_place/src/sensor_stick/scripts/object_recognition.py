@@ -57,13 +57,6 @@ def pcl_callback(pcl_msg):
     pcl_objects = pcl_filtered.extract(inliers, negative=True)
     pcl_table = pcl_filtered.extract(inliers, negative=False)
 
-
-    white_cloud = XYZRGB_to_XYZ(pcl_objects)
-    outlier_filter = white_cloud.make_statistical_outlier_filter()
-    outlier_filter.set_mean_k(50)
-    x = 1.0
-    outlier_filter.set_std_dev_mul_thresh(x)
-    extracted_outliers = outlier_filter.filter()
     # TODO: Euclidean Clustering
     white_cloud = XYZRGB_to_XYZ(pcl_objects)
     tree = white_cloud.make_kdtree()
@@ -117,6 +110,7 @@ def pcl_callback(pcl_msg):
         nhists = compute_normal_histograms(normals)
         feature = np.concatenate((chists, nhists))
         # labeled_features.append([feature, model_name])
+        
         # Make the prediction
         prediction = clf.predict(scaler.transform(feature.reshape(1,-1)))
         label = encoder.inverse_transform(prediction)[0]
