@@ -93,7 +93,7 @@ Rubric:
 > reviewer consider adding screenshots of output at different steps in
 > your writeup with brief explanations
 
-`compute_color_histograms()` and `compute_normal_histograms()` have been completed in file [features.py](/nd209/3D_perception_project/src/sensor_stick/src/sensor_stick/features.py). Initially, I had only 20 scans, and 32 bins for both colour and normalised data, but this failed to differentiate the `book` object from `sticky note`, so 50 scans were created using a linear kernel with 64 bins for colour data, and 48 for normalised. The model was trained using train_svm.py and produced the following  result:
+`compute_color_histograms()` and `compute_normal_histograms()` have been completed in file [features.py](/3D_perception_project/src/sensor_stick/src/sensor_stick/features.py). Initially, I had only 20 scans, and 32 bins for both colour and normalised data, but this failed to differentiate the `book` object from `sticky note`, so 50 scans were created using a linear kernel with 64 bins for colour data, and 48 for normalised. The model was trained using train_svm.py and produced the following  result:
 
     robond@udacity:~/catkin_ws$ rosrun sensor_stick train_svm.py
     Features in Training Set: 400
@@ -103,7 +103,7 @@ Rubric:
     accuracy score: 0.856783919598
 
 ![Normalised confusion matrix](https://raw.githubusercontent.com/mnbf9rca/nd209/master/3D_perception_project/normalised.png)
-`pcl_callback()` has been implemented in [project_template.py](/mnbf9rca/nd209/blob/master/3D_perception_project/src/RoboND-Perception-Project/pr2_robot/scripts/project_template.py), and accurately identifies 3/3 objects in world 1, 4 or 5/5 objects in world 2, and 7/8 objects in world 3. Here's an example output from world 2:
+`pcl_callback()` has been implemented in [project_template.py](/3D_perception_project/src/RoboND-Perception-Project/pr2_robot/scripts/project_template.py), and accurately identifies 3/3 objects in world 1, 4 or 5/5 objects in world 2, and 7/8 objects in world 3. Here's an example output from world 2:
 ![output showing that the number of entires in the YAML file varies with each iteration](https://raw.githubusercontent.com/mnbf9rca/nd209/master/3D_perception_project/world_2.png)
 
 
