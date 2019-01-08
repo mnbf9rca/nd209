@@ -93,7 +93,7 @@ Rubric:
 > reviewer consider adding screenshots of output at different steps in
 > your writeup with brief explanations
 
-`compute_color_histograms()` and `compute_normal_histograms()` have been completed in file [features.py](/mnbf9rca/nd209/3D_perception_project/src/sensor_stick/src/sensor_stick/features.py). Initially, I had only 20 scans, and 32 bins for both colour and normalised data, but this failed to differentiate the `book` object from `sticky note`, so 50 scans were created using a linear kernel with 64 bins for colour data, and 48 for normalised. The model was trained using train_svm.py and produced the following  result:
+`compute_color_histograms()` and `compute_normal_histograms()` have been completed in file [features.py](/nd209/3D_perception_project/src/sensor_stick/src/sensor_stick/features.py). Initially, I had only 20 scans, and 32 bins for both colour and normalised data, but this failed to differentiate the `book` object from `sticky note`, so 50 scans were created using a linear kernel with 64 bins for colour data, and 48 for normalised. The model was trained using train_svm.py and produced the following  result:
 
     robond@udacity:~/catkin_ws$ rosrun sensor_stick train_svm.py
     Features in Training Set: 400
