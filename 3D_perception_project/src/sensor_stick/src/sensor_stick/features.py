@@ -48,8 +48,8 @@ def compute_color_histograms(cloud, using_hsv=False):
 
 
 def compute_normal_histograms(normal_cloud):
-    nbins = 48
-    bins_range = (0, 256)    
+    nbins = 32
+    bins_range = (-1, 1)    
     norm_x_vals = []
     norm_y_vals = []
     norm_z_vals = []

@@ -93,14 +93,15 @@ Rubric:
 > reviewer consider adding screenshots of output at different steps in
 > your writeup with brief explanations
 
-`compute_color_histograms()` and `compute_normal_histograms()` have been completed in file [features.py](./src/sensor_stick/src/sensor_stick/features.py). Initially, I had only 20 scans, and 32 bins for both colour and normalised data, but this failed to differentiate the `book` object from `sticky note`, so 50 scans were created using a linear kernel with 64 bins for colour data, and 48 for normalised. The model was trained using train_svm.py and produced the following  result:
+`compute_color_histograms()` and `compute_normal_histograms()` have been completed in file [features.py](./src/sensor_stick/src/sensor_stick/features.py). Initially, I had only 20 scans, and 32 bins for both colour and normalised data, but this failed to differentiate the `book` object from `sticky note`, so 50 scans were created using a linear kernel with 64 bins for colour data, which seemed sufficinet. My project review highlighted that I'd failed to account properly for the range of possible values in a normalised histogram, so i adjused this to 32 bins with a range (-1,1). The model was trained using train_svm.py and produced the following  result:
 
     robond@udacity:~/catkin_ws$ rosrun sensor_stick train_svm.py
-    Features in Training Set: 400
-    Invalid Features in Training set: 2
-    Scores: [ 0.8375      0.8125      0.8875      0.88607595  0.86075949]
-    Accuracy: 0.86 (+/- 0.06)
-    accuracy score: 0.856783919598
+    Features in Training Set: 800
+    Invalid Features in Training set: 0
+    Scores: [ 0.85625  0.88125  0.8875   0.85625  0.9    ]
+    Accuracy: 0.88 (+/- 0.03)
+    accuracy score: 0.87625
+
 
 ![Normalised confusion matrix](./normalised.png)
 `pcl_callback()` has been implemented in [project_template.py](./src/RoboND-Perception-Project/pr2_robot/scripts/project_template.py), and accurately identifies 3/3 objects in world 1, 4 or 5/5 objects in world 2, and 7/8 objects in world 3. Here's an example output from world 2:
