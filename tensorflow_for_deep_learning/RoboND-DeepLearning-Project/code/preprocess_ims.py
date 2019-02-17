@@ -117,12 +117,14 @@ def combine_masks(processed_folder):
 
 def get_im_data(base_path):
     folds = glob.glob(os.path.join(base_path, '*', '*'))
+    
     indicator_dict = dict()
     
     is_val = lambda x: x.find('validation') != -1
     
     for f in folds:
         files = glob.glob(os.path.join(f, '*','*.png'))
+        
         if len(files) == 0:
             indicator_dict[f] = (False, is_val(f))
         else:
@@ -142,6 +144,7 @@ if __name__ == '__main__':
     for e, i in enumerate(indicator_dict.items()):
         # no data in the folder so skip it
         if not i[1][0]:
+            print("no data in folder ", i)
             continue
 
         # validation
