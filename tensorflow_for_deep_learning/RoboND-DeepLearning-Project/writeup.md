@@ -1,3 +1,4 @@
+
 # Project: Follow Me
 Robert Aleck / mnbf9rca
 February 2019
@@ -7,6 +8,7 @@ February 2019
 The semantic segmentation model was built using a fully convolutional network (FCN). My initial model, based on the work I'd done in previous exercises, had two encoders, however this failed to reach the required level of accuracy. I added a third encoder/decoder pair, and experimented with the depth of filters for each layer - a sample of such values, the approximate training time (in minutes), and the resulting final score are shown below. 
 
 I did note that although the course literature states that the number of filters should increase with each encoder layer (or decrease symmetrically for the decoder layers), I achieved the best result when encoder 2 and 3 were both set to 64 filters. You can find this model as file `model_weights_32_64_64_128_64_64_32`, along with some others, in the `data/weights` folder.
+
 | encoder 1 | encoder 2 | encoder 3 | convolution | decoder 1 | decoder 2 | decoder 3 | training time | final_score
 |---|---|---|---|---|---|---|---|---
 | 32 | 64 | -- | 64 | -- | 64 | 32 | ~40 | 0.333
@@ -23,7 +25,7 @@ and is implemented as follows (this code is simplified for presentation):
 	    encoder_layer_1 = encoder_block(inputs, filters = 32, strides = 2)
 	    encoder_layer_2 = encoder_block(encoder_layer_1, filters = 64, strides = 2)
 	    encoder_layer_3 = encoder_block(encoder_layer_2, filters = 64, strides = 2)
-	    convolution_layer = conv2d_batchnorm(encoder_layer_3, filters = 64, kernel_size = 1, strides = 1)
+	    convolution_layer = conv2d_batchnorm(encoder_layer_3, filters = 128, kernel_size = 1, strides = 1)
 	    decoder_layer_1 = decoder_block(convolution_layer, encoder_layer_2, filters = 64)
 	    decoder_layer_2 = decoder_block(decoder_layer_1, encoder_layer_1, filters = 64)
 	    decoder_layer_3 = decoder_block(decoder_layer_2, inputs, filters = 32)
@@ -50,5 +52,11 @@ Ultimately, our goal is pixelwise prediction of the semantic value of an input i
 ## Is this model and data transferable to another context?
 In short - no. The model has been trained on a specific "hero" who (it appears) is wearing a red coat when all other actors are in grey or blue. I would hypothesise that the model would fail should any other actors wear a red coat. The specific shape of the person is also unlikely to be transferrable to other contexts, such as a cat or cow. 
 This model is not particularly complex, taking less than an hour to tune. If it were more generalised - for example, if it were trained to track a range of target objects by arbitrary selection (e.g. from imagenet), it is feasible that some form of transfer learning could be used to "seed" the initial downsampled model.
+![drone following the hero](https://raw.githubusercontent.com/mnbf9rca/nd209/master/tensorflow_for_deep_learning/RoboND-DeepLearning-Project/images/following.png)
+## Future enhancements
+Future work might consider:
+ - training for more general characteristics of the hero, such as gait, through more detailed analysis of the hero
+ - Improve accuracy (IOU) through additional layers and further training
+ - generate a larger training set of the hero at a distance, and train on this
 
 > Written with [StackEdit](https://stackedit.io/).
