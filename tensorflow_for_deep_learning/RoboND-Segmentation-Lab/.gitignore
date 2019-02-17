@@ -92,5 +92,6 @@ ENV/
 notMNIST.pickle
 *.zip
 
-train_combined/
-validation/
+data/*
+!data/weights/
+
